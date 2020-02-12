@@ -517,17 +517,19 @@ module SMAPIv1 = struct
                         Db.VDI.add_to_sm_config ~__context ~self ~key:reason_key
                           ~value:attach_info_v1.Smint.o_direct_reason)) ;
               {
+                (* We now return an optional nbd, xenopsd must decide what to use *)
                 implementations=
-                  [
-                    XenDisk
-                      {
-                        params= attach_info_v1.Smint.params
-                      ; extra= attach_info_v1.Smint.xenstore_data
-                      ; backend_type= "vbd3"
-                      }
-                  ; (* Currently we always get a BlockDevice from SMAPIv1, never a File, not even for ISOs *)
-                    BlockDevice {path= attach_info_v1.Smint.params}
-                  ]
+                  XenDisk {
+                    params = attach_info_v1.Smint.params;
+                    extra = attach_info_v1.Smint.xenstore_data;
+                    backend_type = "vbd3"
+                  } :: 
+                  match attach_info_v1.Smint.params_nbd with
+                     |Some nbd_uri ->
+                        [Nbd {
+                           uri = nbd_uri
+                        }]
+                     |None -> []
               })
         in
         Mutex.execute vdi_read_write_m (fun () ->

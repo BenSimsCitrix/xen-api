@@ -189,6 +189,7 @@ let vdi_attach dconf driver sr vdi writable =
   with _ ->
     {
       params= Sm_exec.parse_attach_result_legacy result
+    ; params_nbd = None
     ; o_direct= true
     ; o_direct_reason= ""
     ; xenstore_data= []
